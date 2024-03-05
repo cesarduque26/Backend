@@ -348,11 +348,12 @@ getHabitaciones: async function (req, res) {
         return codigo;
       };
 
-      const { cliente, idReserva, esReserva} = req.body;
+      const { cliente, idReserva, esReserva,esModificacionReserva,diferencia} = req.body;
+     
       const verificacionCodigo = generarCodigoVerificacion();
-      
+      console.log(diferencia)
       let emailOpciones;
-      if(!esReserva){
+      if (!esReserva) {
         emailOpciones = {
           from: usuarioGmailEnvia,
           to: cliente.Email,
@@ -360,11 +361,30 @@ getHabitaciones: async function (req, res) {
           html: `
               <p>BIENVENIDO A HOTEL COPO DE NIEVE</p>
               <p>Estimado/a ${cliente.Nombres} ${cliente.Apellidos},</p>
-              <p><strong>Su código de verifación es el siguiente:</strong></p>
+              <p><strong>Su código de verificación es el siguiente:</strong></p>
               <p><strong>${verificacionCodigo}</strong></p>
           `
         };
-      }else{
+      } else if (esModificacionReserva) {
+        const diferenciaFormateada = parseFloat(diferencia).toFixed(2);
+
+        emailOpciones = {
+          from: usuarioGmailEnvia,
+          to: cliente.Email,
+          subject: 'Reserva modificada',
+          html: `
+              <p><strong>Estimado/a ${cliente.Nombres} ${cliente.Apellidos},</strong></p>
+              <p>Le escribimos para informarle que ha habido una modificación en su reserva en el Hotel Copo de Nieve.</p>
+              <p>El identificador de su reserva es: <strong>${idReserva}</strong></p>
+              <p>Hemos realizado ajustes según sus preferencias o cambios en la disponibilidad.</p>
+              <p>Además, queremos notificarle que se ha generado un reembolso por la diferencia de $${diferenciaFormateada}.</p>
+              <p>El reembolso será procesado y se le devolverá en su método de pago en los próximos 7 días hábiles.</p>
+              <p>Le agradecemos su comprensión y paciencia. No dude en contactarnos si tiene alguna pregunta o necesita asistencia adicional.</p>
+              <p>Atentamente,</p>
+              <p>Equipo de Servicio al Cliente<br/>Hotel Copo de Nieve</p>
+          `
+        };
+      } else {
         emailOpciones = {
           from: usuarioGmailEnvia,
           to: cliente.Email,
@@ -377,7 +397,9 @@ getHabitaciones: async function (req, res) {
           `
         };
       }
-   
+      
+      
+     //return res.status(200).send({ cliente,verificacionCodigo,idReserva});
       transporter.sendMail(emailOpciones, (error, info) => {
         if (error) {
           console.log(error);
@@ -392,6 +414,5 @@ getHabitaciones: async function (req, res) {
     }
   },
   // finaliiza lo del correo
-
 }
 module.exports=controller;
